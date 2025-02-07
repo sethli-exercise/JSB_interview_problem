@@ -41,11 +41,18 @@ def send_message(message: str):
 
 def display_messages(messages):
     for message in messages:
-        st.info(message)
+        st.divider()
+        st.markdown("")
+        st.info()
+        st.divider()
+
+
 
 
 def main():
-    st.title('Terminal Text Display in Word Bubbles')
+    st.title('Fantastic Hallucinations from LLMs')
+
+    st.markdown("<span style='color: blue;'>This text is blue!</span>", unsafe_allow_html=True)
 
     displayed_messages = []
     while True:
@@ -56,7 +63,6 @@ def main():
             display_messages(new_messages)
             displayed_messages.extend(new_messages)
         st.rerun()
-
 
 if __name__ == "__main__":
     main()
