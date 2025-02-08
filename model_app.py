@@ -1,31 +1,31 @@
-import subprocess
+import ollama
 
-import flask_app
-import streamlit_app
-
-class semiPersistantModel:
+class semiPersistentModel:
     # special delimiter used by the model so it can differentiate between prompts
     __delimiter = "&&&&**(%"
 
-    def __init__(self, model: str):
+    def __init__(self, model: str="llama3.3"):
         self.model = model
-        self.conversationHistory = [f"Only respond to the last prompt the rest are the previous prompts. Each prompt is delimited by {semiPersistantModel.__delimiter}"]
+        # initialize the context of the conversation
+        self.conversationHistory = [f"Only respond to the last prompt the rest are the previous prompts. Each prompt is delimited by {semiPersistentModel.__delimiter}"]
 
-    #
+    # format the list of prompts into one string
     def conversationHistoryToStr(self):
-        return semiPersistantModel.__delimiter.join(prompt for prompt in self.conversationHistory)
+        return semiPersistentModel.__delimiter.join(prompt for prompt in self.conversationHistory)
 
-    #
+    # prompts the model with the parameter prompt
+    # also provides the model with the past conversation history
     def promptModel(self, prompt):
         self.conversationHistory.append(prompt)
         conversationConcat = self.conversationHistoryToStr()
+        response = ollama.chat(
+            model=self.model,
+            messages=[
+                {
+                    'role': 'user',
+                    'content': conversationConcat
+                }
+            ]
+        )
 
-
-
-def main():
-    flask_app.main()
-    streamlit_app.main()
-
-
-if __name__ == "__main__":
-    main()
+        return response['message']['content']

@@ -3,24 +3,28 @@ import threading
 import logging
 import subprocess
 import sys
+import model_app
 
 app = Flask(__name__)
 
 # List to store messages
 messages = []
 
-
+stt = subprocess.Popen(["streamlit", "run" ,"streamlit_app.py"])
 
 def input_thread():
+    model = model_app.semiPersistentModel("mistral")
+
     while True:
         prompt = input("Provide a prompt for llava or enter QUIT to exit the program:\n")
 
-        # if prompt == "QUIT":
-        #     return
-        #
-        # modelOutput = run_ollama(prompt)
-        messages.append(prompt)
-        # messages.append(modelOutput)
+        if prompt == "QUIT":
+            exit(0)
+
+        # prompt the model with the given input
+        modelOutput = model.promptModel(prompt)
+        messages.append(["user's prompt", prompt])
+        messages.append(["LLM response:", modelOutput])
 
 
 @app.route('/get_messages', methods=['GET'])

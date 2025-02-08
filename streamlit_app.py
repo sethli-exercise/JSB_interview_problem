@@ -1,4 +1,5 @@
 import sys
+import time
 
 import streamlit as st
 import requests
@@ -41,9 +42,8 @@ def send_message(message: str):
 
 def display_messages(messages):
     for message in messages:
-        st.divider()
-        st.markdown("")
-        st.info()
+        st.markdown(message[0])
+        st.info(message[1])
         st.divider()
 
 
@@ -52,10 +52,11 @@ def display_messages(messages):
 def main():
     st.title('Fantastic Hallucinations from LLMs')
 
-    st.markdown("<span style='color: blue;'>This text is blue!</span>", unsafe_allow_html=True)
+    # st.markdown("<span style='color: blue;'>This text is blue!</span>", unsafe_allow_html=True)
 
     displayed_messages = []
     while True:
+        # time.sleep(1000)
         messages = fetch_messages()
         new_messages = [msg for msg in messages if msg not in displayed_messages]
 
