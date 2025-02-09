@@ -1,4 +1,51 @@
 import ollama
+import requests
+import streamlit as st
+
+class LLMInterface():
+
+    sendPromptUrl = "http://localhost:5000/prompt/send"
+    getResponseUrl = "http://localhost:5000/response/get"
+
+    def __init__(self):
+        self.displayedMessages = []
+
+    # send a prompt to the LLM
+    # returns true if the prompt was successfully sent
+    # returns false if the prompt was not succ
+    def sendPrompt(self, prompt: str):
+
+        # where and what to send
+        url = LLMInterface.sendPromptUrl
+        data = {
+            "prompt" : prompt
+        }
+
+        try:
+            response = requests.post(url)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            st.error(f"failed to send prompt\nERROR:{e}")
+            return False
+
+    def getAllResponses(self):
+        url = LLMInterface.getResponseUrl
+        try:
+            response = requests.post(url)
+        except Exception as e:
+            st.error(f"failed to get all responses\nERROR:{e}")
+            return []
+
+    def getLastResponse(self):
+        url = LLMInterface.getResponseUrl
+        try:
+            response = requests.post(url)
+        except Exception as e:
+            st.error(f"failed to get last response\nERROR:{e}")
+            return []
 
 conversation = ["Only respond to the last prompt the rest are the previous prompts. Each prompt is delimited by &&&&**(%."]
 
