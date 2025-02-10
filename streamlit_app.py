@@ -7,8 +7,6 @@ import signal
 
 import ollama
 
-
-
 class LLMInterface:
     # special delimiter used by the model so it can differentiate between prompts
     __delimiter = "&&&&**(%"
@@ -43,82 +41,65 @@ class LLMInterface:
 def sigterm_handler(signum, frame):
     sys.exit(0)
 
+class FrontEndServer():
+    def __init__(self):
+        self.llmInterface = LLMInterface(model="llava")
 
-# signal.signal(signal.SIGTERM, sigterm_handler)
+        # displayed messages must be stored in the session_state otherwise it will be re-initialized when the web app updates
+        if "displayedMessages" not in st.session_state:
+            st.session_state.displayedMessages = []
+        return
 
-# def fetch_messages():
-#     try:
-#         response = requests.get('http://localhost:5000/get_messages')
-#         if response.status_code == 200:
-#             return response.json()["messages"]
-#         else:
-#             return []
-#     except Exception as e:
-#         st.error(f"Failed to fetch messages: {str(e)}")
-#         return []
-#
-# def send_message(message: str):
-#     url = 'http://localhost:5000/send_message'
-#     data = {
-#         "msg": message
-#     }
-#
-#     try:
-#         response = requests.post(url, json = data)
-#         if response.status_code == 200:
-#             return response.json()
-#         else:
-#             return response.json()["messages"]
-#     except Exception as e:
-#         st.error(f"failed to send message: {str(e)}")
-#         return []
+    # render the entire conversation history between the user and the LLM
+    def displayMessages(self, messages: list):
+        for i in range(len(messages)):
+            if i % 2 == 0:
+                st.markdown("User's Prompt:")
+            else:
+                st.markdown("LLM's Response:")
 
+            st.info(messages[i])
+            st.divider()
 
-def displayMessages(messages):
-    for message in messages:
-        # st.markdown(message[0])
-        st.info(message)
+    def mainPage(self):
+
+        st.title('Fantastic Hallucinations from LLMs')
+
+        # form for submitting prompts to the LLM
+        with (st.form(key="inputPrompt", clear_on_submit=True)):
+            # text input for form
+            prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
+
+            # submit button for form
+            submitted = st.form_submit_button("Submit")
+            if submitted:
+                # print("sent prompt")
+                st.session_state.displayedMessages.append(prompt)
+
+                llmResponse = self.llmInterface.promptModel(prompt)
+                # print(llmResponse)
+                st.session_state.displayedMessages.append(llmResponse)
+
+        # holds conversation history
+        with st.container():
+            self.displayMessages(st.session_state.displayedMessages)
+            # print(st.session_state.displayedMessages)
+            # print("########################")
+
+# render the entire conversation history between the user and the LLM
+def displayMessages(messages: list):
+    for i in range(len(messages)):
+        if i % 2 == 0:
+            st.markdown("User's Prompt:")
+        else:
+            st.markdown("LLM's Response:")
+
+        st.info(messages[i])
         st.divider()
 
-
-
-
 def main():
-    st.session_state.displayedMessages = []
-    llmInterface = LLMInterface(model = "llava")
-
-
-    st.title('Fantastic Hallucinations from LLMs')
-    with (st.form(key = "inputPrompt", clear_on_submit=True)):
-        prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
-
-        # submit button
-        submitted = st.form_submit_button("Submit")
-        if submitted:
-            print("sent prompt")
-            st.session_state.displayedMessages.append(prompt)
-            llmResponse = llmInterface.promptModel(prompt)
-            print(llmResponse)
-            st.session_state.displayedMessages.append(llmResponse)
-
-    with st.container():
-        displayMessages(st.session_state.displayedMessages)
-
-
-        # st.write(prompt)
-
-    # st.markdown("<span style='color: blue;'>This text is blue!</span>", unsafe_allow_html=True)
-
-    # displayedMessages = []
-    # while True:
-    #     # time.sleep(1000)
-    #     messages = fetch_messages()
-    #     new_messages = [msg for msg in messages if msg not in displayedMessages]
-    #
-    #     if new_messages:
-    #         display_messages(new_messages)
-    #         displayedMessages.extend(new_messages)
-    #     st.rerun()
+    frontEndServer = FrontEndServer()
+    frontEndServer.mainPage()
 
 if __name__ == "__main__":
     main()
