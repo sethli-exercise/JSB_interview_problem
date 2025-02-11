@@ -4,6 +4,13 @@ import ollama
 import requests
 import streamlit as st
 
+
+import speech_recognition as sr
+import pyaudio
+
+import speechToText
+
+
 class LLMInterface():
 
     sendPromptUrl = "http://localhost:5000/prompt/send"
@@ -84,9 +91,27 @@ def test2():
     testJoin("message 1")
     testJoin("message 2")
 
+def test3():
+    r = sr.Recognizer()
+    with sr.Microphone() as audioSource:
+
+        try:
+            r.adjust_for_ambient_noise(audioSource, duration=0.2)
+
+            audio = r.listen(audioSource)
+
+
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+def test4():
+    stt = speechToText.SpeechToText()
+    print(stt.transcribe_from_wav("output.wav"))
+
 
 def main():
-    test1()
+    test4()
 
 
 if __name__ == "__main__":

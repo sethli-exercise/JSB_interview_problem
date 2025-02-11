@@ -1,9 +1,11 @@
 import streamlit as st
 import llmInterface
+import textToSpeech
 
 class RequestHandler:
-    def __init__(self, llmInterface: llmInterface.LLMInterface):
-        self.llmInterface = llmInterface
+    def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech):
+        self.llmInterface = ollamaInterface
+        self.speech = speech
 
         # displayed messages must be stored in the session_state otherwise it will be re-initialized when the web app updates
         if "displayedMessages" not in st.session_state:
@@ -29,6 +31,10 @@ class RequestHandler:
         with (st.form(key="inputPrompt", clear_on_submit=True)):
             # text input for form
             prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
+            listening = st.toggle("Speech to Text")
+
+            if listening:
+                x = None #TODO convert the speech to text then fill in prompt with it
 
             # submit button for form
             submitted = st.form_submit_button("Submit")
@@ -39,6 +45,20 @@ class RequestHandler:
                 llmResponse = self.llmInterface.promptModel(prompt)
                 # print(llmResponse)
                 st.session_state.displayedMessages.append(llmResponse)
+
+        with (st.form(key="Playback")):
+            playback = st.form_submit_button("Playback Last Response")
+            volumeSliderVal = st.slider("Volume", 0.01, 1.0, 0.5)
+            stopPlayback = st.form_submit_button("Stop Playback")
+            self.speech.setVolume(volumeSliderVal)
+
+            if playback:
+                self.speech.speakText(st.session_state.displayedMessages[-1])
+
+            if stopPlayback:
+                self.speech.stop()
+
+
 
         # holds conversation history
         with st.container():
