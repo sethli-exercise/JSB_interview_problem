@@ -1,11 +1,16 @@
 import streamlit as st
+
+import listener
 import llmInterface
+import speechToText
 import textToSpeech
 
 class RequestHandler:
-    def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech):
+    def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech, recorder: listener.AudioRecorder, stt: speechToText.SpeechToText):
         self.llmInterface = ollamaInterface
         self.speech = speech
+        self.recorder = recorder
+        self.stt = stt
 
         # displayed messages must be stored in the session_state otherwise it will be re-initialized when the web app updates
         if "displayedMessages" not in st.session_state:
@@ -23,10 +28,7 @@ class RequestHandler:
             st.info(messages[i])
             st.divider()
 
-    def mainPage(self):
-
-        st.title('Fantastic Hallucinations from LLMs')
-
+    def promptForm(self):
         # form for submitting prompts to the LLM
         with (st.form(key="inputPrompt", clear_on_submit=True)):
             # text input for form
@@ -34,7 +36,9 @@ class RequestHandler:
             listening = st.toggle("Speech to Text")
 
             if listening:
-                x = None #TODO convert the speech to text then fill in prompt with it
+                self.recorder.record()
+                text = self.stt.transcribeFile()
+                prompt = text
 
             # submit button for form
             submitted = st.form_submit_button("Submit")
@@ -46,7 +50,8 @@ class RequestHandler:
                 # print(llmResponse)
                 st.session_state.displayedMessages.append(llmResponse)
 
-        with (st.form(key="Playback")):
+    def playbackForm(self):
+        with (st.form(key="playback")):
             playback = st.form_submit_button("Playback Last Response")
             volumeSliderVal = st.slider("Volume", 0.01, 1.0, 0.5)
             stopPlayback = st.form_submit_button("Stop Playback")
@@ -58,7 +63,13 @@ class RequestHandler:
             if stopPlayback:
                 self.speech.stop()
 
+    def mainPage(self):
 
+        st.title('Fantastic Hallucinations from LLMs')
+
+        self.promptForm()
+
+        self.playbackForm()
 
         # holds conversation history
         with st.container():

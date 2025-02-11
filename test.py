@@ -4,11 +4,13 @@ import ollama
 import requests
 import streamlit as st
 
-
+import subprocess
 import speech_recognition as sr
 import pyaudio
 
+import listener
 import speechToText
+import os
 
 
 class LLMInterface():
@@ -92,27 +94,20 @@ def test2():
     testJoin("message 2")
 
 def test3():
-    r = sr.Recognizer()
-    with sr.Microphone() as audioSource:
-
-        try:
-            r.adjust_for_ambient_noise(audioSource, duration=0.2)
-
-            audio = r.listen(audioSource)
-
-
-
-        except Exception as e:
-            print(f"Error: {e}")
+    recorder = listener.AudioRecorder()
+    recorder.record()
 
 def test4():
     stt = speechToText.SpeechToText()
-    print(stt.transcribe_from_wav("output.wav"))
+    print(stt.transcribeFile("E:/codeProjects/JSB_interview_problem/output.wav"))
 
 
 def main():
+    test3()
+    # os.environ["PATH"] += os.pathsep + "C:\\ffmpeg\\ffmpeg-7.1-essentials_build\\bin"
     test4()
 
+    # subprocess.run(["ffmpeg", "-version"])
 
 if __name__ == "__main__":
     main()
