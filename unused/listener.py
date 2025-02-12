@@ -1,5 +1,6 @@
 import pyaudio
 import wave
+from audio_recorder_streamlit import audio_recorder
 
 class AudioRecorder:
     def __init__(self, filename="output.wav", duration=5, rate=44100, channels=1, chunk=1024, format=pyaudio.paInt16):

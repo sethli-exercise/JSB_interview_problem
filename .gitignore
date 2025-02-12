@@ -1,0 +1,14 @@
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/JSB_interview_problem.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+__pycache__/flask_app.cpython-313.pyc
+__pycache__/listener.cpython-313.pyc
+__pycache__/llmInterface.cpython-313.pyc
+__pycache__/model_app.cpython-313.pyc
+__pycache__/requestHandler.cpython-313.pyc
+__pycache__/speechToText.cpython-313.pyc
+__pycache__/streamlit_app.cpython-313.pyc
+__pycache__/textToSpeech.cpython-313.pyc

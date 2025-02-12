@@ -16,7 +16,7 @@ def main():
     interface = llmInterface.LLMInterface(model = "mistral")
     recorder = listener.AudioRecorder()
     stt = speechToText.SpeechToText()
-    frontEndServer = requestHandler.RequestHandler(interface, speech, recorder, stt)
+    frontEndServer = requestHandler.RequestHandler(interface, speech, stt)
     frontEndServer.mainPage()
 
 if __name__ == "__main__":

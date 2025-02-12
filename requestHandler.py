@@ -1,4 +1,8 @@
+import tempfile
 import streamlit as st
+from audio_recorder_streamlit import audio_recorder
+import torchaudio
+
 
 import listener
 import llmInterface
@@ -6,10 +10,9 @@ import speechToText
 import textToSpeech
 
 class RequestHandler:
-    def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech, recorder: listener.AudioRecorder, stt: speechToText.SpeechToText):
+    def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech, stt: speechToText.SpeechToText):
         self.llmInterface = ollamaInterface
         self.speech = speech
-        self.recorder = recorder
         self.stt = stt
 
         # displayed messages must be stored in the session_state otherwise it will be re-initialized when the web app updates
@@ -29,19 +32,31 @@ class RequestHandler:
             st.divider()
 
     def promptForm(self):
+
         # form for submitting prompts to the LLM
         with (st.form(key="inputPrompt", clear_on_submit=True)):
-            # text input for form
-            prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
-            listening = st.toggle("Speech to Text")
 
-            if listening:
-                self.recorder.record()
-                text = self.stt.transcribeFile()
-                prompt = text
+            text = "Enter your prompt here."
+
+            audio = st.audio_input("Say something.")
+            submitAudio = st.form_submit_button("Change prompt to recording.")
+            if audio and submitAudio:
+                print("audio exists",audio)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tempAudio:
+                    tempAudio.write(audio.getvalue())
+                    tempAudioPath = tempAudio.name
+                text = self.stt.transcribeFile(tempAudioPath)
+            else:
+                # print("audio does not exist", audio)
+                st.warning("No audio detected! Please try recording again.")
+
+
+            # text input for form
+            prompt = st.text_input("What would you like to ask?", text)
 
             # submit button for form
             submitted = st.form_submit_button("Submit")
+
             if submitted:
                 # print("sent prompt")
                 st.session_state.displayedMessages.append(prompt)
