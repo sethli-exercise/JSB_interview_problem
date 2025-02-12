@@ -8,13 +8,11 @@ import signal
 import textToSpeech
 import llmInterface
 import requestHandler
-import listener
 import speechToText
 
 def main():
     speech = textToSpeech.TextToSpeech()
     interface = llmInterface.LLMInterface(model = "mistral")
-    recorder = listener.AudioRecorder()
     stt = speechToText.SpeechToText()
     frontEndServer = requestHandler.RequestHandler(interface, speech, stt)
     frontEndServer.mainPage()

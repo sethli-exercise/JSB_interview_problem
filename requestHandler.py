@@ -1,10 +1,6 @@
 import tempfile
 import streamlit as st
-from audio_recorder_streamlit import audio_recorder
-import torchaudio
 
-
-import listener
 import llmInterface
 import speechToText
 import textToSpeech
@@ -35,24 +31,25 @@ class RequestHandler:
 
         # form for submitting prompts to the LLM
         with (st.form(key="inputPrompt", clear_on_submit=True)):
-
-            text = "Enter your prompt here."
-
+            # audio input ##############################################################################################
             audio = st.audio_input("Say something.")
-            submitAudio = st.form_submit_button("Change prompt to recording.")
+            submitAudio = st.form_submit_button("Submit Recording.")
             if audio and submitAudio:
                 print("audio exists",audio)
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tempAudio:
                     tempAudio.write(audio.getvalue())
                     tempAudioPath = tempAudio.name
                 text = self.stt.transcribeFile(tempAudioPath)
-            else:
-                # print("audio does not exist", audio)
-                st.warning("No audio detected! Please try recording again.")
 
+                st.session_state.displayedMessages.append(text)
 
+                llmResponse = self.llmInterface.promptModel(text)
+                # print(llmResponse)
+                st.session_state.displayedMessages.append(llmResponse)
+
+            # typed input ##############################################################################################
             # text input for form
-            prompt = st.text_input("What would you like to ask?", text)
+            prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
 
             # submit button for form
             submitted = st.form_submit_button("Submit")
