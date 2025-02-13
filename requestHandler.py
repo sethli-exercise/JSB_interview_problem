@@ -20,9 +20,10 @@ class RequestHandler:
         self.stt = stt
         self.pdfReader = pdfReader
 
-
-        st.session_state.displayedMessages = []
-        st.session_state.playbackVolume = 0.5
+        if "displayedMessages" not in st.session_state:
+            st.session_state.displayedMessages = []
+        if "playbackVolume" not in st.session_state:
+            st.session_state.playbackVolume = 0.5
         return
 
     # render the entire conversation history between the user and the LLM
@@ -36,7 +37,7 @@ class RequestHandler:
             st.info(messages[i][RequestHandler.__KEY_USER_PROMPT])
 
             st.markdown(RequestHandler.__KEY_LLM_RESPONSE)
-            playback = st.button("Playback")
+            playback = st.button("Playback#" + str(i + 1))
             if playback:
                 self.speech.speakText(messages[i][RequestHandler.__KEY_LLM_RESPONSE])
             st.warning(messages[i][RequestHandler.__KEY_LLM_RESPONSE]) # st.warning() is used b/c it has a different background color to st.info()
@@ -52,8 +53,9 @@ class RequestHandler:
                 RequestHandler.__KEY_DATETIME_START: start,
                 RequestHandler.__KEY_DATETIME_FINISH: finish
             }
-
+        # print(len(st.session_state.displayedMessages))
         st.session_state.displayedMessages.append(conversationEntry)
+        # print(len(st.session_state.displayedMessages))
 
     # listen to the user to capture a recording
     # then use the whisper model to transcribe the text
@@ -83,8 +85,6 @@ class RequestHandler:
             submitFile = st.form_submit_button("Upload File")
         with col2:
             file = st.file_uploader("Upload pdf", type="pdf")
-
-
 
         # submit button for form
         submitted = st.form_submit_button("Submit")
@@ -118,7 +118,7 @@ class RequestHandler:
 
     def inputOption(self) -> str:
         inputOption = st.radio(
-            "",
+            "inputOptions",
             [
                 "CHAT",
                 "RAG",
@@ -129,7 +129,8 @@ class RequestHandler:
                 "Verbal input to LLM",
                 "Text input to LLM with files",
                 "Text input to LLM"
-            ]
+            ],
+            label_visibility= "hidden"
         )
 
         return inputOption
@@ -148,8 +149,6 @@ class RequestHandler:
                 self.typeInput()
             else:
                 st.write("Select an Option")
-            # TODO add pdf upload options for RAG
-
 
     def playbackForm(self):
         with (st.form(key="playback")):
@@ -177,7 +176,6 @@ class RequestHandler:
 
         # holds conversation history
         with st.container():
-            print(len(st.session_state.displayedMessages))
             self.displayMessages(st.session_state.displayedMessages)
             # print(st.session_state.displayedMessages)
             # print("########################")

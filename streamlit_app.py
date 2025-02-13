@@ -27,12 +27,6 @@ if __name__ == "__main__":
     main()
 
 # TODO save conversation history as text file
-# save datetime and content
-
-
-
-# TODO RAG
-
 
 # test mistral and mistral instruct are the same
 

@@ -7,7 +7,7 @@ class LLMInterface:
     def __init__(self, model: str="llama3.3"):
         self.model = model
         # initialize the context of the conversation
-        self.conversationHistory = [f"Only respond to the last prompt the rest are the previous prompts. Each prompt is delimited by {LLMInterface.__delimiter}"]
+        self.conversationHistory = [f"Only respond to the last prompt the rest are the previous prompts. Look at the previous prompts for context.Each prompt is delimited by {LLMInterface.__delimiter}"]
 
     # format the list of prompts into one string
     def conversationHistoryToStr(self):

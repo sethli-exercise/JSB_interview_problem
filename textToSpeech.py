@@ -10,8 +10,12 @@ class TextToSpeech:
         self.engine.setProperty('volume', volume)
 
     def speakText(self, text):
-        self.engine.say(text)
-        self.engine.runAndWait()
+        try:
+            self.engine.say(text)
+            self.engine.runAndWait()
+        except RuntimeError as e:
+            # engine is already talking do nothing
+            return
 
     def stop(self):
         self.engine.stop()
