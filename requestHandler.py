@@ -81,7 +81,7 @@ class RequestHandler:
 
     def ragInput(self):
 
-        prompt = st.text_input("What would you like to ask?", "Enter your prompt here.")
+        prompt = st.text_input("Upload the file before submitting the prompt.", "Enter your prompt here.")
 
         col1, col2 = st.columns([1,3])
         with col1:
