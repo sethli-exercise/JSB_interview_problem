@@ -17,6 +17,7 @@ class LLMInterface:
     # also provides the model with the past conversation history
     def promptModel(self, prompt):
         self.conversationHistory.append(prompt)
+        # print(len(self.conversationHistory))
         conversationConcat = self.conversationHistoryToStr()
         response = ollama.chat(
             model=self.model,

@@ -1,10 +1,3 @@
-import sys
-import time
-
-import streamlit as st
-import requests
-import signal
-
 import pdfTextExtract
 import textToSpeech
 import llmInterface
@@ -26,7 +19,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO save conversation history as text file
+
 
 # test mistral and mistral instruct are the same
 

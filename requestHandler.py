@@ -1,3 +1,4 @@
+import json
 import tempfile
 import streamlit as st
 import datetime
@@ -15,11 +16,13 @@ class RequestHandler:
     __KEY_DATETIME_FINISH = "finish"
 
     def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech, stt: speechToText.SpeechToText, pdfReader: pdfTextExtract.PDFTextExtract):
-        self.llmInterface = ollamaInterface
+        # self.llmInterface = ollamaInterface
         self.speech = speech
         self.stt = stt
         self.pdfReader = pdfReader
 
+        if "llmInterface" not in st.session_state:
+            st.session_state.llmInterface = ollamaInterface
         if "displayedMessages" not in st.session_state:
             st.session_state.displayedMessages = []
         if "playbackVolume" not in st.session_state:
@@ -30,7 +33,7 @@ class RequestHandler:
     def displayMessages(self, messages: list):
         for i in range(len(messages)):
 
-            timeDiff = messages[i][RequestHandler.__KEY_DATETIME_FINISH] - messages[i][RequestHandler.__KEY_DATETIME_START]
+            timeDiff = datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_FINISH], "%Y-%m-%d %H:%M:%S") - datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_START], "%Y-%m-%d %H:%M:%S")
             st.markdown(f"Took about {timeDiff.total_seconds()} seconds")
 
             st.markdown(RequestHandler.__KEY_USER_PROMPT + " #" + str(i + 1))
@@ -50,8 +53,8 @@ class RequestHandler:
             {
                 RequestHandler.__KEY_USER_PROMPT: prompt,
                 RequestHandler.__KEY_LLM_RESPONSE: llmResponse,
-                RequestHandler.__KEY_DATETIME_START: start,
-                RequestHandler.__KEY_DATETIME_FINISH: finish
+                RequestHandler.__KEY_DATETIME_START: start.strftime("%Y-%m-%d %H:%M:%S"),
+                RequestHandler.__KEY_DATETIME_FINISH: finish.strftime("%Y-%m-%d %H:%M:%S")
             }
         # print(len(st.session_state.displayedMessages))
         st.session_state.displayedMessages.append(conversationEntry)
@@ -71,7 +74,7 @@ class RequestHandler:
 
             # submit the transcribed audio to the LLM
             startTime = datetime.datetime.now()
-            llmResponse = self.llmInterface.promptModel(prompt)
+            llmResponse = st.session_state.llmInterface.promptModel(prompt)
             finishTime = datetime.datetime.now()
 
             self.addConversationEntry(prompt, llmResponse, startTime, finishTime)
@@ -95,9 +98,9 @@ class RequestHandler:
             llmResponse = ""
             if file is not None :
                 pdfText = self.pdfReader.extractText(file.read())
-                llmResponse = self.llmInterface.promptModel(prompt + pdfText)
+                llmResponse = st.session_state.llmInterface.promptModel(prompt + pdfText)
             else:
-                llmResponse = self.llmInterface.promptModel(prompt)
+                llmResponse = st.session_state.llmInterface.promptModel(prompt)
 
             finishTime = datetime.datetime.now()
 
@@ -111,7 +114,7 @@ class RequestHandler:
         if submitted:
             # submit the typed prompt to the LLM
             startTime = datetime.datetime.now()
-            llmResponse = self.llmInterface.promptModel(prompt)
+            llmResponse = st.session_state.llmInterface.promptModel(prompt)
             finishTime = datetime.datetime.now()
 
             self.addConversationEntry(prompt, llmResponse, startTime, finishTime)
@@ -150,6 +153,8 @@ class RequestHandler:
             else:
                 st.write("Select an Option")
 
+        self.downloadConversationHistoryAsTextFile()
+
     def playbackForm(self):
         with (st.form(key="playback")):
             # col1, col2 = st.columns([1, 1])
@@ -162,6 +167,16 @@ class RequestHandler:
             if stopPlayback:
                 self.speech.stop()
 
+    def downloadConversationHistoryAsTextFile(self):
+        jsonData = json.dumps(st.session_state.displayedMessages)
+        print(jsonData)
+        st.download_button(
+            label="Download Conversation History",
+            data=jsonData,
+            file_name="ConversationHistory.json",
+            mime="application/json"
+        )
+
     def mainPage(self):
 
         st.title('Fantastic Hallucinations from LLMs')
@@ -171,6 +186,7 @@ class RequestHandler:
             inputOption = self.inputOption()
         with col2:
             self.playbackForm()
+
 
         self.promptForm(inputOption)
 
