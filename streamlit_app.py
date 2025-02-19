@@ -58,17 +58,3 @@ if __name__ == "__main__":
 # Phi-3: ollama pull phi-3
 # Aya: ollama pull aya
 # Command-R: ollama pull command-r
-
-#################################################
-
-# test mistral and mistral instruct are the same
-
-# test mistral on other pdfs and websites
-
-# test llava for single image with diff gestures/objects
-
-# report latency for all parts of application
-
-#################################################
-
-# pdf summary of implementation
