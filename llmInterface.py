@@ -7,26 +7,39 @@ class LLMInterface:
     def __init__(self, model: str="llama3.3"):
         self.model = model
         # initialize the context of the conversation
-        self.conversationHistory = [f"Only respond to the last prompt the rest are the previous prompts. Look at the previous prompts for context.Each prompt is delimited by {LLMInterface.__delimiter}"]
+        self.conversationHistory = [
+            {"role": "system", "content": "You are a helpful AI assistant."}
+        ]
 
     # format the list of prompts into one string
-    def conversationHistoryToStr(self):
-        return LLMInterface.__delimiter.join(prompt for prompt in self.conversationHistory)
+    # def conversationHistoryToStr(self):
+    #     return LLMInterface.__delimiter.join(prompt for prompt in self.conversationHistory)
 
     # prompts the model with the parameter prompt
     # also provides the model with the past conversation history
-    def promptModel(self, prompt):
-        self.conversationHistory.append(prompt)
+    def promptModel(self, prompt, imageBytes = None):
+        # self.conversationHistory.append(prompt)
         # print(len(self.conversationHistory))
-        conversationConcat = self.conversationHistoryToStr()
+
+        # format the newest prompt for the model
+        message = {
+                'role': 'user',
+                'content': prompt
+            }
+
+
+        if imageBytes is not None:
+            # print("adding image to message")
+            message['images'] = [imageBytes]
+
+        # add the newest prompt to the history
+        self.conversationHistory.append(message)
+
         response = ollama.chat(
             model=self.model,
-            messages=[
-                {
-                    'role': 'user',
-                    'content': conversationConcat
-                }
-            ]
+            messages=self.conversationHistory
         )
+
+        self.conversationHistory.append({"role": "assistant", "content": response['message']['content']})
 
         return response['message']['content']

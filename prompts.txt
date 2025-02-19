@@ -1,0 +1,5 @@
+Add 15 with 17 and 89237.
+Now put the result from the previous prompt to the power of 4.
+Now describe the following website: https://steamdb.info/instantsearch/
+Summarize the content of this: https://ollama.com/library
+What is the context of this pdf: https://d18rn0p25nwr6d.cloudfront.net/CIK-0001813756/975b3e9b-268e-4798-a9e4-2a9a7c92dc10.pdf

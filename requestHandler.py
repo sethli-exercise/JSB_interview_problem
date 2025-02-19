@@ -1,7 +1,9 @@
 import json
+import os
 import tempfile
 import streamlit as st
 import datetime
+from PIL import Image
 
 import llmInterface
 import pdfTextExtract
@@ -14,6 +16,8 @@ class RequestHandler:
     __KEY_LLM_RESPONSE = "LLM's Response:"
     __KEY_DATETIME_START =  "start"
     __KEY_DATETIME_FINISH = "finish"
+    
+    __DATE_TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
     def __init__(self, ollamaInterface: llmInterface.LLMInterface, speech: textToSpeech.TextToSpeech, stt: speechToText.SpeechToText, pdfReader: pdfTextExtract.PDFTextExtract):
         # self.llmInterface = ollamaInterface
@@ -27,14 +31,16 @@ class RequestHandler:
             st.session_state.displayedMessages = []
         if "playbackVolume" not in st.session_state:
             st.session_state.playbackVolume = 0.5
+        if "file" not in st.session_state:
+            st.session_state.file = None
         return
 
     # render the entire conversation history between the user and the LLM
     def displayMessages(self, messages: list):
         for i in range(len(messages)):
 
-            timeDiff = datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_FINISH], "%Y-%m-%d %H:%M:%S") - datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_START], "%Y-%m-%d %H:%M:%S")
-            st.markdown(f"Took about {timeDiff.total_seconds()} seconds")
+            timeDiff = datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_FINISH], RequestHandler.__DATE_TIME_FORMAT) - datetime.datetime.strptime(messages[i][RequestHandler.__KEY_DATETIME_START], RequestHandler.__DATE_TIME_FORMAT)
+            st.markdown(f"Took about {timeDiff.total_seconds() * 1000:.3f} milliseconds")
 
             st.markdown(RequestHandler.__KEY_USER_PROMPT + " #" + str(i + 1))
             st.info(messages[i][RequestHandler.__KEY_USER_PROMPT])
@@ -53,8 +59,8 @@ class RequestHandler:
             {
                 RequestHandler.__KEY_USER_PROMPT: prompt,
                 RequestHandler.__KEY_LLM_RESPONSE: llmResponse,
-                RequestHandler.__KEY_DATETIME_START: start.strftime("%Y-%m-%d %H:%M:%S"),
-                RequestHandler.__KEY_DATETIME_FINISH: finish.strftime("%Y-%m-%d %H:%M:%S")
+                RequestHandler.__KEY_DATETIME_START: start.strftime(RequestHandler.__DATE_TIME_FORMAT),
+                RequestHandler.__KEY_DATETIME_FINISH: finish.strftime(RequestHandler.__DATE_TIME_FORMAT)
             }
         # print(len(st.session_state.displayedMessages))
         st.session_state.displayedMessages.append(conversationEntry)
@@ -87,7 +93,17 @@ class RequestHandler:
         with col1:
             submitFile = st.form_submit_button("Upload File")
         with col2:
-            file = st.file_uploader("Upload pdf", type="pdf")
+            file = st.file_uploader("Upload pdf", type=["pdf"])
+            image = st.file_uploader("Upload image", type=["jpg", "jpeg", "png"])
+
+        if submitFile:
+            if file is not None:
+                st.session_state.file = file
+            elif image is not None:
+                st.session_state.file = image
+            else:
+                st.session_state.file = None
+
 
         # submit button for form
         submitted = st.form_submit_button("Submit")
@@ -95,10 +111,14 @@ class RequestHandler:
             # submit the typed prompt to the LLM
             startTime = datetime.datetime.now()
 
+            fileExtension = os.path.splitext(st.session_state.file.name)[1]
             llmResponse = ""
-            if file is not None :
-                pdfText = self.pdfReader.extractText(file.read())
+            if fileExtension in [".pdf"]:
+                pdfText = self.pdfReader.extractText(st.session_state.file.name.read())
                 llmResponse = st.session_state.llmInterface.promptModel(prompt + pdfText)
+            elif fileExtension in [".jpg", ".jpeg", ".png"]:
+                imageBytes = st.session_state.file.getvalue()
+                llmResponse = st.session_state.llmInterface.promptModel(prompt, imageBytes)
             else:
                 llmResponse = st.session_state.llmInterface.promptModel(prompt)
 
@@ -169,7 +189,7 @@ class RequestHandler:
 
     def downloadConversationHistoryAsTextFile(self):
         jsonData = json.dumps(st.session_state.displayedMessages)
-        print(jsonData)
+        # print(jsonData)
         st.download_button(
             label="Download Conversation History",
             data=jsonData,
